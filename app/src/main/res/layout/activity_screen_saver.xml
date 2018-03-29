@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:background="@drawable/screen_saver1"
+    tools:context="com.dan.stickynote.ScreenSaver">
+
+
+    <Button
+        android:id="@+id/job"
+        android:layout_width="240dp"
+        android:layout_height="120dp"
+
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="108dp"
+        android:background="@drawable/sticky"
+        android:fontFamily="@font/aaa"
+        android:text="HOMEWORK"
+        android:textSize="25dp" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/job"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="38dp"
+        android:text="Click it if you finished!"
+        android:textSize="23dp" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="28dp"
+        android:text="Shake if you think it's inessential!"
+        android:textSize="23dp" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView2"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="29dp"
+        android:text="If you forget!"
+        android:textSize="23dp" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView3"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="14dp"
+        android:text="Just Do It !"
+        android:textColor="#000000"
+        android:textSize="32dp"/>
+
+
+</RelativeLayout>
