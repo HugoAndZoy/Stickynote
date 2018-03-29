@@ -2,51 +2,42 @@ package com.dan.stickynote;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.PowerManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
 //    PowerManager.WakeLock mWakeLock;
+private List<Fruit> fruitList=new ArrayList<>( );
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+       FruitAdapter adapter=new FruitAdapter(MainActivity.this,R.layout.fruit_item,fruitList);
+       ListView listView=(ListView)findViewById(R.id.list) ;
+       listView.setAdapter(adapter);
 
         startService(new Intent(this, MyService.class));
 
-//        BroadcastReceiver mMasterResetReciever= new BroadcastReceiver() {
-//            public void onReceive(Context context, Intent intent){
-//                try{
-//                    Intent i = new Intent();
-//                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);//解释
-//                    i.setClass(context, ScreenSaver.class);
-//                    context.startActivity(i);
-//                    MainActivity.this.finish();
-//                }catch(Exception e){
-//                    Log.i("Output:", e.toString());
-//                }
-//            }
-//
-//        };
-//
-//        IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
-//        registerReceiver(mMasterResetReciever, filter);
-
-
-//        PowerManager pm = (PowerManager)getSystemService(POWER_SERVICE);
-//         mWakeLock = pm.newWakeLock(PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.SCREEN_DIM_WAKE_LOCK |
-//                        PowerManager.ON_AFTER_RELEASE, "SimpleTimer");
-
-
-        Button mybuttom=(Button)findViewById(R.id.button);
-        mybuttom.setOnClickListener(this);
+        Button button_add=(Button)findViewById(R.id.button_add);
+        button_add.setOnClickListener(this);
 
     }
 
@@ -64,9 +55,61 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
-        if(v.getId()==R.id.button)
-            MainActivity.this.finish();
+        if(v.getId()==R.id.button_add)
+            showInputDialog();
 
 
+    }
+
+
+    public class Fruit{
+
+        private  String name;
+    //    private  int imageId;
+        public Fruit(String name)
+        {
+            this.name=name;
+          //  this.imageId=imageId;
+        }
+        public String getName(){
+            return  name;
+
+        }
+     /*   public int getImageId(){
+            return  imageId;
+        }  */
+    }
+    public class FruitAdapter extends  ArrayAdapter<Fruit>{
+        private  int resourceId;
+        public FruitAdapter(Context context, int textViewResourcId, List<Fruit>objects){
+            super(context,textViewResourcId, objects);
+            resourceId=textViewResourcId;
+        }
+        public View getView(int position, View convertView, ViewGroup parent){
+
+            Fruit fruit=getItem(position);
+            View view= LayoutInflater.from(getContext()).inflate(resourceId,parent,false);
+            TextView fruitName=(TextView)view.findViewById(R.id.fruit_name);
+            fruitName.setText(fruit.getName());
+            return view;
+        }
+
+    }
+
+    private void showInputDialog() {
+    /*@setView 装入一个EditView
+     */
+        final EditText addText = new EditText(MainActivity.this);
+        AlertDialog.Builder inputDialog = new AlertDialog.Builder(MainActivity.this);
+        inputDialog.setTitle("Add new ").setView(addText);
+        inputDialog.setPositiveButton("ok", new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                     Fruit tasks=new Fruit(addText.getText().toString());
+                        fruitList.add(tasks);
+
+                    }
+                }
+        ).show();
     }
 }

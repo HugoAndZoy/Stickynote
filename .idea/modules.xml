@@ -3,7 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Stickynote.iml" filepath="$PROJECT_DIR$/Stickynote.iml" />
+      <module fileurl="file://C:\Users\Dan\Desktop\apps\Stickynote\Stickynote.iml" filepath="C:\Users\Dan\Desktop\apps\Stickynote\Stickynote.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://C:\Users\Dan\Desktop\apps\Stickynote\app\app.iml" filepath="C:\Users\Dan\Desktop\apps\Stickynote\app\app.iml" />
     </modules>
   </component>
 </project>
