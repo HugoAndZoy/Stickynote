@@ -17,6 +17,7 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="108dp"
+        android:maxEms="15"
         android:background="@drawable/sticky"
         android:fontFamily="@font/aaa"
         android:text="HOMEWORK"

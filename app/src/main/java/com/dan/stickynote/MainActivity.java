@@ -9,6 +9,7 @@ import android.os.PowerManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -65,19 +67,19 @@ private List<Fruit> fruitList=new ArrayList<>( );
     public class Fruit{
 
         private  String name;
-    //    private  int imageId;
-        public Fruit(String name)
+   private  int imageId;
+        public Fruit(String name ,int imageId)
         {
             this.name=name;
-          //  this.imageId=imageId;
+            this.imageId=imageId;
         }
         public String getName(){
             return  name;
 
         }
-     /*   public int getImageId(){
+     public int getImageId(){
             return  imageId;
-        }  */
+        }
     }
     public class FruitAdapter extends  ArrayAdapter<Fruit>{
         private  int resourceId;
@@ -90,6 +92,8 @@ private List<Fruit> fruitList=new ArrayList<>( );
             Fruit fruit=getItem(position);
             View view= LayoutInflater.from(getContext()).inflate(resourceId,parent,false);
             TextView fruitName=(TextView)view.findViewById(R.id.fruit_name);
+            ImageView fruitImage=(ImageView)view.findViewById(R.id.fruit_image);
+            fruitImage.setImageResource(fruit.getImageId());
             fruitName.setText(fruit.getName());
             return view;
         }
@@ -100,12 +104,13 @@ private List<Fruit> fruitList=new ArrayList<>( );
     /*@setView 装入一个EditView
      */
         final EditText addText = new EditText(MainActivity.this);
+        addText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(15)});
         AlertDialog.Builder inputDialog = new AlertDialog.Builder(MainActivity.this);
         inputDialog.setTitle("Add new ").setView(addText);
         inputDialog.setPositiveButton("ok", new DialogInterface.OnClickListener() {
 
                     public void onClick(DialogInterface dialog, int which) {
-                     Fruit tasks=new Fruit(addText.getText().toString());
+                     Fruit tasks=new Fruit(addText.getText().toString(),R.drawable.bimp);
                         fruitList.add(tasks);
 
                     }
