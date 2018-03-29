@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.PowerManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class ScreenSaver extends AppCompatActivity implements View.OnClickListener{
@@ -26,7 +28,8 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
             "HOMEWORK","WASH THE CAR","COOK","HAVE CLASS","THESIS","PAINT","REVIEW","RECITE WORDS","SWEEP"
     };
     private int task_number =0;
-    private ArrayList<String> arr_task = new ArrayList<String>();
+    //private ArrayList<String> arr_task = new ArrayList<String>();
+    private List<Fruit> fruitList=new ArrayList<>( );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,8 +65,7 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
 
         //↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓屏保内互动设置↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
         //让arrayList获得数据
-        for(int i=0; i<tasks.length;i++)
-            arr_task.add(tasks[i]);
+        load();
 
 
         //给任务按钮添加事件相应
@@ -72,8 +74,8 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
 
         //随机一个任务显示
         Random right = new Random();
-        task_number = Math.abs(right.nextInt())%tasks.length;           //获取正确的那个
-        task.setText(tasks[task_number]);
+        task_number = Math.abs(right.nextInt())%fruitList.size();           //获取正确的那个
+        task.setText(fruitList.get(task_number).getName());
 
         //滑动监听
         GestureDetector.SimpleOnGestureListener myGestureListener = new GestureDetector.SimpleOnGestureListener(){
@@ -130,17 +132,19 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
     //点击按钮，删除已完成的任务
     public void abandon(){
         //先删除当前任务
-            if(arr_task.size()>0) {
-                arr_task.remove(task_number);
+            if(fruitList.size()>0) {
+                delete(fruitList.get(task_number).getName());     //删除数据库中的记录
+
+                fruitList.remove(task_number);                    //删除数组中的记录
             }
         Button task = (Button) findViewById(R.id.job);
         //如果还有任务要做
-        if(arr_task.size()>0) {
+        if(fruitList.size()>0) {
             Random right = new Random();
-            int temp = Math.abs(right.nextInt()) % arr_task.size();           //获取正确的那个
-            if(temp==task_number) temp = Math.abs(right.nextInt()) % arr_task.size();    //如果和当前重复，再随机一次
+            int temp = Math.abs(right.nextInt()) % fruitList.size();           //获取正确的那个
+            if(temp==task_number) temp = Math.abs(right.nextInt()) % fruitList.size();    //如果和当前重复，再随机一次
             else task_number=temp;
-            task.setText(arr_task.get(task_number));
+            task.setText(fruitList.get(task_number).getName());
         }
         //如果没有任务要做
         else
@@ -153,17 +157,53 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
     public void shake(){
         Button task = (Button) findViewById(R.id.job);
         //如果还有任务要做
-        if(arr_task.size()>0) {
+        if(fruitList.size()>0) {
             Random right = new Random();
-            int temp = Math.abs(right.nextInt()) % arr_task.size();           //获取正确的那个
-            if(temp==task_number) temp = Math.abs(right.nextInt()) % arr_task.size();    //如果和当前重复，再随机一次
+            int temp = Math.abs(right.nextInt()) % fruitList.size();           //获取正确的那个
+            if(temp==task_number) temp = Math.abs(right.nextInt()) % fruitList.size();    //如果和当前重复，再随机一次
             else task_number=temp;
-            task.setText(arr_task.get(task_number));
+            task.setText(fruitList.get(task_number).getName());
         }
         //如果没有任务要做
         else
         {
             task.setText("NO TASKS!");
         }
+    }
+
+    //装载fruitlist
+    public void load(){
+        SharedPreferences pref = getSharedPreferences("StickyNoteData",MODE_PRIVATE);
+        int count = pref.getInt("ArraySize",0);       //获取数组长度
+
+        //移除现有数组
+//        for(int i=0; i<fruitList.size();i++)
+//            fruitList.remove(i);
+        fruitList=new ArrayList<>( );
+
+        //如果长度大于0，则加载数组
+        if(count>0) {
+            for (int i = 0; i < count; i++) {
+                String item = pref.getString(i + "", null);
+                fruitList.add(i, new Fruit(item, R.drawable.bimp));
+            }
+
+        }
+    }
+
+
+    //删除数据
+    private void delete(String s){
+        //先删除
+        SharedPreferences.Editor editor = getSharedPreferences("StickyNoteData", MODE_PRIVATE).edit();
+        editor.remove(s);
+        editor.apply();
+
+        //在修改数量
+        SharedPreferences pref = getSharedPreferences("StickyNoteData",MODE_PRIVATE);
+        int count = pref.getInt("ArraySize",0);       //获取数组长度
+        count = count-1;
+        editor.putInt("ArraySize", count);                           //修改数组长度-1
+        editor.apply();
     }
 }
