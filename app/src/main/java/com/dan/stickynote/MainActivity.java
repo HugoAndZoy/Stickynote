@@ -6,15 +6,19 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.PowerManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.text.InputFilter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -29,29 +33,52 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     //    PowerManager.WakeLock mWakeLock;
-    private List<Fruit> fruitList=new ArrayList<>( );
-
-    private FruitAdapter adapter;
+    private List<Task> taskList = new ArrayList<>( );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //隐藏状态栏
+        getSupportActionBar().hide();
 
+        //装载listView  Load the ListView
         load();
 
-        adapter=new FruitAdapter(MainActivity.this,R.layout.fruit_item,fruitList);
-       final ListView listView=(ListView)findViewById(R.id.list) ;
-       listView.setAdapter(adapter);
+        //找到recycler_view    find
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        recyclerView.setLayoutManager(layoutManager);
 
-       //添加长按响应
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        recyclerView.addOnItemTouchListener(new OnRecyclerItemClickListener(recyclerView) {
             @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+            public void onItemClick(RecyclerView.ViewHolder viewHolder) {
+
+            }
+            //添加长按相应   Long Click
+            @Override
+            public void onItemLOngClick(RecyclerView.ViewHolder viewHolder) {
+                int position = viewHolder.getAdapterPosition();
                 showNormalDialog(position);
-                return false;
             }
         });
+
+
+        TaskAdapter adapter2 = new TaskAdapter(taskList);
+        recyclerView.setAdapter(adapter2);
+
+//        adapter=new FruitAdapter(MainActivity.this,R.layout.fruit_item,fruitList);
+//       final ListView listView=(ListView)findViewById(R.id.list) ;
+//       listView.setAdapter(adapter);
+
+       //添加长按响应
+//        recyclerView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+//            @Override
+//            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+//                showNormalDialog(position);
+//                return false;
+//            }
+//        });
 
 
         startService(new Intent(this, MyService.class));
@@ -82,49 +109,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    public class Fruit{
-
-        private  String name;
-   private  int imageId;
-        public Fruit(String name ,int imageId)
-        {
-            this.name=name;
-            this.imageId=imageId;
-        }
-        public String getName(){
-            return  name;
-
-        }
-     public int getImageId(){
-            return  imageId;
-        }
-    }
-    public class FruitAdapter extends  ArrayAdapter<Fruit>{
-        private  int resourceId;
-        public FruitAdapter(Context context, int textViewResourcId, List<Fruit>objects){
-            super(context,textViewResourcId, objects);
-            resourceId=textViewResourcId;
-        }
-        public View getView(int position, View convertView, ViewGroup parent){
-
-            Fruit fruit=getItem(position);
-            View view= LayoutInflater.from(getContext()).inflate(resourceId,parent,false);
-            TextView fruitName=(TextView)view.findViewById(R.id.fruit_name);
-            ImageView fruitImage=(ImageView)view.findViewById(R.id.fruit_image);
-            fruitImage.setImageResource(fruit.getImageId());
-            fruitName.setText(fruit.getName());
-            return view;
-        }
-
-    }
-
     private void showInputDialog() {
     /*@setView 装入一个EditView
      */
         final EditText addText = new EditText(MainActivity.this);
-
         //设置最大输入字符数
-        addText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(8)});
+        addText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(15)});
         AlertDialog.Builder inputDialog = new AlertDialog.Builder(MainActivity.this);
         inputDialog.setTitle("Add new ").setView(addText);
         inputDialog.setPositiveButton("ok", new DialogInterface.OnClickListener() {
@@ -149,7 +139,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void save(String data){
         SharedPreferences.Editor editor = getSharedPreferences("StickyNoteData", MODE_PRIVATE).edit();
-        int count = fruitList.size();        //获取当前的任务数量
+        int count = taskList.size();        //获取当前的任务数量
         editor.putString(count+"",data);        //将新任务添加到列表里
         editor.putInt("ArraySize", count+1);    //用ArraySize来记录最新任务的数量
         editor.apply();
@@ -162,13 +152,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //移除现有数组
 //        for(int i=0; i<fruitList.size();i++)
 //            fruitList.remove(i);
-        fruitList=new ArrayList<>( );
+        taskList=new ArrayList<>( );
 
         //如果长度大于0，则加载数组
         if(count>0) {
             for (int i = 0; i < count; i++) {
                 String item = pref.getString(i + "", null);
-                fruitList.add(i, new Fruit(item, R.drawable.point));
+                taskList.add(i, new Task(item, R.drawable.point));
             }
 
         }
@@ -207,7 +197,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         //...To-do
-                         delete(fruitList.get(it).getName());
+                         delete(taskList.get(it).getName());
                                                 refresh();
                     }
                 });

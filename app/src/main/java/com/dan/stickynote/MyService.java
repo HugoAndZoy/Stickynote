@@ -22,6 +22,7 @@ public class MyService extends Service {
                     Intent i = new Intent();
                     i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);//解释
                     i.setClass(context, ScreenSaver.class);
+
                     context.startActivity(i);
                     //MainActivity.this.finish();
                 }catch(Exception e){

@@ -21,7 +21,7 @@
         android:background="@drawable/sticky"
         android:fontFamily="@font/aaa"
         android:text="HOMEWORK"
-        android:textSize="25dp" />
+        android:textSize="28dp" />
 
     <TextView
         android:id="@+id/textView"
