@@ -6,31 +6,23 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.dan.stickynote.MainActivity"
-    android:background="#FFFAF0"
+    android:background="@drawable/bg"
     >
 
 
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
-            android:gravity="center"
-            android:text="StickyNote"
-            android:textColor="#000000"
-            android:textSize="20dp"
-            app:layout_heightPercent="10%" />
-
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/recycler_view"
-            android:layout_below="@+id/title"
+        <ListView
+            android:id="@+id/list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:divider="#00000000"
+            android:dividerHeight="18dp"
+            tools:layout_editor_absoluteX="8dp"
+            tools:layout_editor_absoluteY="8dp"
             app:layout_heightPercent="90%"
-                />
-
-
+            />
 
         <Button
             android:id="@+id/button_add"
@@ -39,19 +31,13 @@
             android:layout_alignParentBottom="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
-            android:layout_marginLeft="0dp"
-            android:gravity="center"
+            android:layout_marginLeft="100dp"
+            android:layout_marginRight="100dp"
+            android:layout_gravity="center"
             android:background="@drawable/button_shap"
-            android:text="+"
+            android:text="ADD"
             android:textSize="20dp"
-            android:textColor="#FFFFFF"
-            android:textStyle="bold"
             app:layout_heightPercent="10%"
-            app:layout_widthPercent="13%"
-            android:layout_marginEnd="20dp"
-            android:layout_marginBottom="20dp"
             />
-
-
 
 </com.zhy.android.percent.support.PercentRelativeLayout>
