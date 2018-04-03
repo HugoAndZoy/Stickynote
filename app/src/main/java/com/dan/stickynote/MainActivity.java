@@ -1,11 +1,14 @@
 package com.dan.stickynote;
 
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.PowerManager;
 import android.support.v7.app.AlertDialog;
@@ -34,6 +37,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //    PowerManager.WakeLock mWakeLock;
     private List<Task> taskList = new ArrayList<>( );
+    // 数据库 dabatase
+    private MyDatabaseHelper dbHelper;
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        //ActivityCollector.removeActivity(this);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,8 +53,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //隐藏状态栏
         getSupportActionBar().hide();
 
+        //ActivityCollector.addActivity(this);
+
+        //加载数据库
+        dbHelper = new MyDatabaseHelper(this, "TaskStore.db", null, 1);
+        dbHelper.getWritableDatabase();
+
         //装载listView  Load the ListView
-        load();
+        load_task();
 
         //找到recycler_view    find
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
@@ -67,19 +84,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         TaskAdapter adapter2 = new TaskAdapter(taskList);
         recyclerView.setAdapter(adapter2);
 
-//        adapter=new FruitAdapter(MainActivity.this,R.layout.fruit_item,fruitList);
-//       final ListView listView=(ListView)findViewById(R.id.list) ;
-//       listView.setAdapter(adapter);
-
-       //添加长按响应
-//        recyclerView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-//            @Override
-//            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-//                showNormalDialog(position);
-//                return false;
-//            }
-//        });
-
 
         startService(new Intent(this, MyService.class));
 
@@ -87,18 +91,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         button_add.setOnClickListener(this);
 
     }
-
-//    @Override
-//    protected void onPause() {
-//        PowerManager.WakeLock mWakeLock;
-//        super.onPause();
-//    }
-//
-//    @Override
-//    protected void onResume() {
-//        mWakeLock.acquire();
-//        super.onResume();
-//    }
 
     @Override
     public void onClick(View v) {
@@ -108,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-
+    //点击添加新任务的按钮  click to add the new task
     private void showInputDialog() {
     /*@setView 装入一个EditView
      */
@@ -121,66 +113,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     public void onClick(DialogInterface dialog, int which) {
                         if(addText.getText().length()>0) {
-                            save(addText.getText().toString());
-                            load();
+                            add_task(addText.getText().toString());
+                            load_task();
                             refresh();
                         }
                     }
                 }
         ).show();
-//        inputDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-//            @Override
-//            public void onDismiss(DialogInterface dialog) {
-//                onCreate(null);
-//            }
-//        });
     }
 
-
-    public void save(String data){
-        SharedPreferences.Editor editor = getSharedPreferences("StickyNoteData", MODE_PRIVATE).edit();
-        int count = taskList.size();        //获取当前的任务数量
-        editor.putString(count+"",data);        //将新任务添加到列表里
-        editor.putInt("ArraySize", count+1);    //用ArraySize来记录最新任务的数量
-        editor.apply();
-    }
-
-    public void load(){
-        SharedPreferences pref = getSharedPreferences("StickyNoteData",MODE_PRIVATE);
-        int count = pref.getInt("ArraySize",0);       //获取数组长度
-
-        //移除现有数组
-//        for(int i=0; i<fruitList.size();i++)
-//            fruitList.remove(i);
-        taskList=new ArrayList<>( );
-
-        //如果长度大于0，则加载数组
-        if(count>0) {
-            for (int i = 0; i < count; i++) {
-                String item = pref.getString(i + "", null);
-                taskList.add(i, new Task(item, R.drawable.point));
-            }
-
-        }
-    }
-
-    //删除数据
-    private void delete(String s){
-        //先删除
-        SharedPreferences.Editor editor = getSharedPreferences("StickyNoteData", MODE_PRIVATE).edit();
-        editor.remove(s);
-        editor.apply();
-
-        //在修改数量
-        SharedPreferences pref = getSharedPreferences("StickyNoteData",MODE_PRIVATE);
-        int count = pref.getInt("ArraySize",0);       //获取数组长度
-        count = count-1;
-        editor.putInt("ArraySize", count);                           //修改数组长度-1
-        editor.apply();
-    }
-
-
-    //删除提示
+    //点击删除任务按钮   click to remove the task
     private void showNormalDialog(int i){
         /* @setIcon 设置对话框图标
          * @setTitle 设置对话框标题
@@ -196,9 +138,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        //...To-do
-                         delete(taskList.get(it).getName());
-                                                refresh();
+                         delete_task(taskList.get(it).getName());
+                        refresh();
                     }
                 });
         normalDialog.setNegativeButton("No",
@@ -212,11 +153,45 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         normalDialog.show();
     }
 
+    //refresh the activity
     private void refresh(){
         Intent it = new Intent(MainActivity.this, MainActivity.class);
         startActivity(it);
         overridePendingTransition(0, 0);
         MainActivity.this.finish();
+    }
+
+    //向数据库添加任务记录  add the task record to the database
+    public void add_task(String t){
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        //组装数据 setup the data
+        values.put("task",t);
+        db.insert("Task", null, values);
+        values.clear();
+    }
+
+    //删除数据库的记录  delete the record in the database
+    public void delete_task(String t){
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        db.delete("Task", "task = ?", new String[]{ t });
+    }
+
+    //查询并载入列表 check and load the task Liat
+    public void load_task(){
+        //移除现有数组   remove the TaskList and recreate a new one
+        taskList=new ArrayList<>( );
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        //查询所有数据
+        Cursor cursor = db.query("Task", null, null, null, null, null, null);
+        if(cursor.moveToFirst()){
+            do{
+                //遍历cursor
+                String task = cursor.getString(cursor.getColumnIndex("task"));
+                taskList.add(new Task(task, R.drawable.point));
+            }while(cursor.moveToNext());
+        }
+        cursor.close();
     }
 }
 

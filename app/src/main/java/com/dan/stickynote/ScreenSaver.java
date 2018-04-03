@@ -5,11 +5,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.PowerManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
@@ -23,18 +27,54 @@ import java.util.Random;
 
 public class ScreenSaver extends AppCompatActivity implements View.OnClickListener{
 
+    private HomeWatcherReceiver mHomeWatcherReceiver = null;
+    private MyDatabaseHelper dbHelper;    //数据库
     PowerManager.WakeLock mWakeLock;
     private String[] tasks = new String[]{
             "HOMEWORK","WASH THE CAR","COOK","HAVE CLASS","THESIS","PAINT","REVIEW","RECITE WORDS","SWEEP"
     };
     private int task_number =0;
     //private ArrayList<String> arr_task = new ArrayList<String>();
-    private List<Fruit> taskList=new ArrayList<>( );
+    private List<Task> taskList=new ArrayList<>( );
+
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+        if(keyCode == KeyEvent.KEYCODE_HOME)
+        {
+            //ActivityCollector.finishAll();
+            return true;
+        }
+
+        return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (mHomeWatcherReceiver != null) {
+            try {
+                unregisterReceiver(mHomeWatcherReceiver);
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.getWindow().setFlags(0x80000000,0x80000000);
         setContentView(R.layout.activity_screen_saver);
+        //ActivityCollector.addActivity(this);
+
+        //连接数据库
+        dbHelper = new MyDatabaseHelper(this, "TaskStore.db", null, 1);
+        dbHelper.getWritableDatabase();
+
 
         //↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓与打开屏保有关的设置↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
         //关闭电源时，这时屏保关闭
@@ -65,7 +105,7 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
 
         //↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓屏保内互动设置↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
         //让arrayList获得数据
-        load();
+        load_task();
 
 
         //给任务按钮添加事件相应
@@ -73,9 +113,15 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
         task.setOnClickListener(this);
 
         //随机一个任务显示
-        Random right = new Random();
-        task_number = Math.abs(right.nextInt())%taskList.size();           //获取正确的那个
-        task.setText(taskList.get(task_number).getName());
+        if(taskList.size()>0) {
+            Random right = new Random();
+            task_number = Math.abs(right.nextInt()) % taskList.size();           //获取正确的那个
+            task.setText(taskList.get(task_number).getName());
+        }
+        else
+        {
+            task.setText("No Tasks!");
+        }
 
         //滑动监听
         GestureDetector.SimpleOnGestureListener myGestureListener = new GestureDetector.SimpleOnGestureListener(){
@@ -133,8 +179,7 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
     public void abandon(){
         //先删除当前任务
             if(taskList.size()>0) {
-                delete(taskList.get(task_number).getName());     //删除数据库中的记录
-
+                delete_task(taskList.get(task_number).getName());     //删除数据库中的记录
                 taskList.remove(task_number);                    //删除数组中的记录
             }
         Button task = (Button) findViewById(R.id.job);
@@ -171,39 +216,49 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
         }
     }
 
-    //装载fruitlist
-    public void load(){
-        SharedPreferences pref = getSharedPreferences("StickyNoteData",MODE_PRIVATE);
-        int count = pref.getInt("ArraySize",0);       //获取数组长度
 
-        //移除现有数组
-//        for(int i=0; i<fruitList.size();i++)
-//            fruitList.remove(i);
+    //删除数据库的记录  delete the record in the database
+    public void delete_task(String t){
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        db.delete("Task", "task = ?", new String[]{ t });
+    }
+
+    //查询并载入列表 check and load the task Liat
+    public void load_task(){
+        //移除现有数组   remove the TaskList and recreate a new one
         taskList=new ArrayList<>( );
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        //查询所有数据
+        Cursor cursor = db.query("Task", null, null, null, null, null, null);
+        if(cursor.moveToFirst()){
+            do{
+                //遍历cursor
+                String task = cursor.getString(cursor.getColumnIndex("task"));
+                taskList.add(new Task(task, R.drawable.point));
+            }while(cursor.moveToNext());
+        }
+        cursor.close();
+    }
 
-        //如果长度大于0，则加载数组
-        if(count>0) {
-            for (int i = 0; i < count; i++) {
-                String item = pref.getString(i + "", null);
-                taskList.add(i, new Fruit(item, R.drawable.bimp));
+    public class HomeWatcherReceiver extends BroadcastReceiver {
+
+        private static final String SYSTEM_DIALOG_REASON_KEY = "reason";
+        private static final String SYSTEM_DIALOG_REASON_HOME_KEY = "homekey";
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            String intentAction = intent.getAction();
+            if (TextUtils.equals(intentAction, Intent.ACTION_CLOSE_SYSTEM_DIALOGS)) {
+                String reason = intent.getStringExtra(SYSTEM_DIALOG_REASON_KEY);
+                if (TextUtils.equals(SYSTEM_DIALOG_REASON_HOME_KEY, reason)) {
+                    ScreenSaver.this.finish();
+                }
             }
-
         }
     }
 
 
-    //删除数据
-    private void delete(String s){
-        //先删除
-        SharedPreferences.Editor editor = getSharedPreferences("StickyNoteData", MODE_PRIVATE).edit();
-        editor.remove(s);
-        editor.apply();
 
-        //再修改数量  change the number
-        SharedPreferences pref = getSharedPreferences("StickyNoteData",MODE_PRIVATE);
-        int count = pref.getInt("ArraySize",0);       //获取数组长度
-        count = count-1;
-        editor.putInt("ArraySize", count);                           //修改数组长度-1
-        editor.apply();
-    }
+
 }
