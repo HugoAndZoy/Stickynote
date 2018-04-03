@@ -1,27 +1,16 @@
 package com.dan.stickynote;
 
-import android.content.BroadcastReceiver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Color;
-import android.os.PowerManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.text.InputFilter;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -35,95 +24,175 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    //    PowerManager.WakeLock mWakeLock;
-    private List<Task> taskList = new ArrayList<>( );
-    // 数据库 dabatase
-    private MyDatabaseHelper dbHelper;
+    //PowerManager.WakeLock mWakeLock;
+    private List<Fruit> fruitList = new ArrayList<>();
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        //ActivityCollector.removeActivity(this);
-    }
+    private FruitAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //隐藏状态栏
-        getSupportActionBar().hide();
 
-        //ActivityCollector.addActivity(this);
+        load();
 
-        //加载数据库
-        dbHelper = new MyDatabaseHelper(this, "TaskStore.db", null, 1);
-        dbHelper.getWritableDatabase();
+        adapter = new FruitAdapter(MainActivity.this, R.layout.fruit_item, fruitList);
+        final ListView listView = (ListView) findViewById(R.id.list);
+        listView.setAdapter(adapter);
 
-        //装载listView  Load the ListView
-        load_task();
-
-        //找到recycler_view    find
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
-        recyclerView.setLayoutManager(layoutManager);
-
-        recyclerView.addOnItemTouchListener(new OnRecyclerItemClickListener(recyclerView) {
+        //添加长按响应
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public void onItemClick(RecyclerView.ViewHolder viewHolder) {
-
-            }
-            //添加长按相应   Long Click
-            @Override
-            public void onItemLOngClick(RecyclerView.ViewHolder viewHolder) {
-                int position = viewHolder.getAdapterPosition();
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 showNormalDialog(position);
+                return false;
             }
         });
 
 
-        TaskAdapter adapter2 = new TaskAdapter(taskList);
-        recyclerView.setAdapter(adapter2);
-
-
         startService(new Intent(this, MyService.class));
 
-        Button button_add=(Button)findViewById(R.id.button_add);
+        Button button_add = findViewById(R.id.button_add);
         button_add.setOnClickListener(this);
 
     }
 
+//    @Override
+//    protected void onPause() {
+//        PowerManager.WakeLock mWakeLock;
+//        super.onPause();
+//    }
+//
+//    @Override
+//    protected void onResume() {
+//        mWakeLock.acquire();
+//        super.onResume();
+//    }
+
     @Override
     public void onClick(View v) {
-        if(v.getId()==R.id.button_add)
+        if (v.getId() == R.id.button_add)
             showInputDialog();
 
 
     }
 
-    //点击添加新任务的按钮  click to add the new task
+
+    public class Fruit {
+
+        private String name;
+        private int imageId;
+
+        public Fruit(String name, int imageId) {
+            this.name = name;
+            this.imageId = imageId;
+        }
+
+        public String getName() {
+            return name;
+
+        }
+
+        public int getImageId() {
+            return imageId;
+        }
+    }
+
+    public class FruitAdapter extends ArrayAdapter<Fruit> {
+        private int resourceId;
+
+        public FruitAdapter(Context context, int textViewResourcId, List<Fruit> objects) {
+            super(context, textViewResourcId, objects);
+            resourceId = textViewResourcId;
+        }
+
+        public View getView(int position, View convertView, ViewGroup parent) {
+
+            Fruit fruit = getItem(position);
+            View view = LayoutInflater.from(getContext()).inflate(resourceId, parent, false);
+            TextView fruitName = view.findViewById(R.id.fruit_name);
+            ImageView fruitImage = view.findViewById(R.id.fruit_image);
+            fruitImage.setImageResource(fruit.getImageId());
+            fruitName.setText(fruit.getName());
+            return view;
+        }
+
+    }
+
     private void showInputDialog() {
-    /*@setView 装入一个EditView
-     */
+        /*@setView 装入一个EditView
+         */
         final EditText addText = new EditText(MainActivity.this);
+
         //设置最大输入字符数
-        addText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(15)});
+        addText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(8)});
         AlertDialog.Builder inputDialog = new AlertDialog.Builder(MainActivity.this);
         inputDialog.setTitle("Add new ").setView(addText);
         inputDialog.setPositiveButton("ok", new DialogInterface.OnClickListener() {
 
                     public void onClick(DialogInterface dialog, int which) {
-                        if(addText.getText().length()>0) {
-                            add_task(addText.getText().toString());
-                            load_task();
+                        if (addText.getText().length() > 0) {
+                            save(addText.getText().toString());
+                            load();
                             refresh();
                         }
                     }
                 }
         ).show();
+//        inputDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+//            @Override
+//            public void onDismiss(DialogInterface dialog) {
+//                onCreate(null);
+//            }
+//        });
     }
 
-    //点击删除任务按钮   click to remove the task
-    private void showNormalDialog(int i){
+
+    public void save(String data) {
+        SharedPreferences.Editor editor = getSharedPreferences("StickyNoteData", MODE_PRIVATE).edit();
+        int count = fruitList.size();        //获取当前的任务数量
+        editor.putString(count + "", data);        //将新任务添加到列表里
+        editor.putInt("ArraySize", count + 1);    //用ArraySize来记录最新任务的数量
+        editor.apply();
+    }
+
+    public void load() {
+        SharedPreferences pref = getSharedPreferences("StickyNoteData", MODE_PRIVATE);
+        int count = pref.getInt("ArraySize", 0);       //获取数组长度
+
+        //移除现有数组
+//        for(int i=0; i<fruitList.size();i++)
+//            fruitList.remove(i);
+        fruitList = new ArrayList<>();
+
+        //如果长度大于0，则加载数组
+        if (count > 0) {
+            for (int i = 0; i < count; i++) {
+                String item = pref.getString(i + "", null);
+                fruitList.add(i, new Fruit(item, R.drawable.point));
+            }
+
+        }
+    }
+
+    //删除数据
+    private void delete(String s) {
+        //先删除
+        SharedPreferences.Editor editor = getSharedPreferences("StickyNoteData", MODE_PRIVATE).edit();
+        editor.remove(s);
+        editor.apply();
+
+        //在修改数量
+        SharedPreferences pref = getSharedPreferences("StickyNoteData", MODE_PRIVATE);
+        int count = pref.getInt("ArraySize", 0);       //获取数组长度
+        count = count - 1;
+        editor.putInt("ArraySize", count);                           //修改数组长度-1
+        editor.apply();
+    }
+
+
+    //删除提示
+    private void showNormalDialog(int i) {
         /* @setIcon 设置对话框图标
          * @setTitle 设置对话框标题
          * @setMessage 设置对话框消息提示
@@ -138,7 +207,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                         delete_task(taskList.get(it).getName());
+                        //...To-do
+                        delete(fruitList.get(it).getName());
                         refresh();
                     }
                 });
@@ -153,45 +223,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         normalDialog.show();
     }
 
-    //refresh the activity
-    private void refresh(){
+    private void refresh() {
         Intent it = new Intent(MainActivity.this, MainActivity.class);
         startActivity(it);
         overridePendingTransition(0, 0);
         MainActivity.this.finish();
-    }
-
-    //向数据库添加任务记录  add the task record to the database
-    public void add_task(String t){
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        //组装数据 setup the data
-        values.put("task",t);
-        db.insert("Task", null, values);
-        values.clear();
-    }
-
-    //删除数据库的记录  delete the record in the database
-    public void delete_task(String t){
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        db.delete("Task", "task = ?", new String[]{ t });
-    }
-
-    //查询并载入列表 check and load the task Liat
-    public void load_task(){
-        //移除现有数组   remove the TaskList and recreate a new one
-        taskList=new ArrayList<>( );
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        //查询所有数据
-        Cursor cursor = db.query("Task", null, null, null, null, null, null);
-        if(cursor.moveToFirst()){
-            do{
-                //遍历cursor
-                String task = cursor.getString(cursor.getColumnIndex("task"));
-                taskList.add(new Task(task, R.drawable.point));
-            }while(cursor.moveToNext());
-        }
-        cursor.close();
     }
 }
 
