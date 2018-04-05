@@ -11,59 +11,44 @@
 
     <Button
         android:id="@+id/job"
-        android:layout_width="240dp"
-        android:layout_height="120dp"
-
-        android:layout_alignLeft="@+id/textView"
-        android:layout_alignParentTop="true"
-        android:layout_alignStart="@+id/textView"
-        android:layout_marginTop="98dp"
-        android:background="@drawable/sticky"
+        android:layout_width="340dp"
+        android:layout_height="220dp"
+        android:layout_centerInParent="true"
+        android:layout_centerHorizontal="true"
+        android:background="#00000000"
         android:fontFamily="@font/aaa"
         android:maxEms="15"
         android:text="HOMEWORK"
-        android:textSize="28dp" />
+        android:textColor="#000000"
+        android:textSize="40dp" />
 
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/job"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="38dp"
+        android:layout_alignBottom="@+id/textView2"
+        android:layout_alignEnd="@+id/job"
+        android:layout_alignRight="@+id/job"
+        android:layout_marginBottom="41dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginRight="32dp"
         android:text="Click it if you finished!"
-        android:textSize="23dp" />
+        android:textColor="#000000"
+        android:textSize="20dp" />
 
     <TextView
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/textView"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="28dp"
-        android:text="Shake if you think it's inessential!"
-        android:textSize="23dp" />
-
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/textView2"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="29dp"
-        android:text="If you forget!"
-        android:textSize="23dp" />
-
-    <TextView
-        android:id="@+id/textView4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/textView3"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="14dp"
-        android:text="Just Do It !"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="45dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginRight="12dp"
+        android:text="Shake if you haven't"
         android:textColor="#000000"
-        android:textSize="32dp"/>
+        android:textSize="20dp" />
 
 
 </RelativeLayout>
