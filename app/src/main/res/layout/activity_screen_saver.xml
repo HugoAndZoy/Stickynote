@@ -14,12 +14,13 @@
         android:layout_width="240dp"
         android:layout_height="120dp"
 
+        android:layout_alignLeft="@+id/textView"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="108dp"
-        android:maxEms="15"
+        android:layout_alignStart="@+id/textView"
+        android:layout_marginTop="98dp"
         android:background="@drawable/sticky"
         android:fontFamily="@font/aaa"
+        android:maxEms="15"
         android:text="HOMEWORK"
         android:textSize="28dp" />
 

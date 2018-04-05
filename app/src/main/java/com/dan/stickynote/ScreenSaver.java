@@ -260,5 +260,4 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
 
 
 
-
 }
