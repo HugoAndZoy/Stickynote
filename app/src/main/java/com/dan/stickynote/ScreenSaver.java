@@ -7,7 +7,10 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.PowerManager;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -27,6 +30,7 @@ import java.util.Random;
 
 public class ScreenSaver extends AppCompatActivity implements View.OnClickListener{
 
+    private Vibrator vibrator;
     private HomeWatcherReceiver mHomeWatcherReceiver = null;
     private MyDatabaseHelper dbHelper;    //数据库
     PowerManager.WakeLock mWakeLock;
@@ -115,8 +119,9 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
         //随机一个任务显示
         if(taskList.size()>0) {
             Random right = new Random();
-            task_number = Math.abs(right.nextInt()) % taskList.size();           //获取正确的那个
-            task.setText(taskList.get(task_number).getName());
+            task_number = sort_time();           //获取正确的那个
+            task.setText(taskList.get(sort_time()).getName());
+            task.setTextColor(Color.RED);
         }
         else
         {
@@ -178,11 +183,16 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
     //点击按钮，删除已完成的任务
     public void abandon(){
         //先删除当前任务
+        Button task = (Button) findViewById(R.id.job);
+        task.setTextColor(Color.BLACK);
+        vibrate();
+        new Animations().shake(this, task);
             if(taskList.size()>0) {
                 delete_task(taskList.get(task_number).getName());     //删除数据库中的记录
                 taskList.remove(task_number);                    //删除数组中的记录
             }
-        Button task = (Button) findViewById(R.id.job);
+
+
         //如果还有任务要做
         if(taskList.size()>0) {
             Random right = new Random();
@@ -201,6 +211,9 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
     //摇动手机不删除任务
     public void shake(){
         Button task = (Button) findViewById(R.id.job);
+        task.setTextColor(Color.BLACK);
+        new Animations().shake(this, task);
+        vibrate();
         //如果还有任务要做
         if(taskList.size()>0) {
             Random right = new Random();
@@ -234,7 +247,16 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
             do{
                 //遍历cursor
                 String task = cursor.getString(cursor.getColumnIndex("task"));
-                taskList.add(new Task(task, R.drawable.point));
+
+                //合并时间
+                String year=String.valueOf(cursor.getInt(cursor.getColumnIndex("year")));
+                String month=String.valueOf(cursor.getInt(cursor.getColumnIndex("month")));
+                String day=String.valueOf(cursor.getInt(cursor.getColumnIndex("day")));
+                String hour=String.valueOf(cursor.getInt(cursor.getColumnIndex("hour")));
+                String min=String.valueOf(cursor.getInt(cursor.getColumnIndex("min")));
+                String time = year+"/"+month+"/"+day+" "+hour+":"+min;
+
+                taskList.add(new Task(task, R.drawable.point, time));
             }while(cursor.moveToNext());
         }
         cursor.close();
@@ -259,5 +281,53 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
     }
 
 
+    public int sort_time(){
+        int count = 8888, current = 0;
+        if(taskList.size()>0){
+            count = 0;
+            SQLiteDatabase db = dbHelper.getWritableDatabase();     //打开数据库   connect the database
+            Cursor cursor = db.query("Task", null, null, null, null, null, null);   //查询所有数据  query the database
 
+            if(cursor.moveToFirst()){
+                //记录第一行数据    move to the first data
+                int count_year = cursor.getInt(cursor.getColumnIndex("year"));
+                int count_month = cursor.getInt(cursor.getColumnIndex("month"));
+                int count_day = cursor.getInt(cursor.getColumnIndex("day"));
+                int count_hour = cursor.getInt(cursor.getColumnIndex("hour"));
+                int count_min = cursor.getInt(cursor.getColumnIndex("min"));
+                if(cursor.moveToNext()) {
+                    //遍历后头的数据    next data
+                    do {
+                        int year = cursor.getInt(cursor.getColumnIndex("year"));
+                        int month = cursor.getInt(cursor.getColumnIndex("month"));
+                        int day = cursor.getInt(cursor.getColumnIndex("day"));
+                        int hour = cursor.getInt(cursor.getColumnIndex("hour"));
+                        int min = cursor.getInt(cursor.getColumnIndex("min"));
+                        current++;
+                        if (year < count_year) {    count_year = year;  count = current;  }
+                        else if(year==count_year && month<count_month )   {  count_month = month; count = current; }
+                        else if(year==count_year && month==count_month && day<count_day )  {  count_day = day;  count = current;  }
+                        else if(year==count_year && month==count_month && day==count_day && hour<count_hour )  {  count_hour = hour;  count =current;  }
+                        else if(year==count_year && month==count_month && day==count_day && hour==count_hour && min<count_min )
+                                {  count_min = min;  count =current;  }
+                    } while (cursor.moveToNext());
+                }
+            }
+        }
+        return count;
+    }
+
+
+    //摇动   shanke
+    private void vibrate() {
+        // Get an instance of Vibrator from the current Context
+        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        //Check if the device has a vibrator
+        if (vibrator.hasVibrator()) {
+            Log.d(getPackageName(), "Device hasVibrator (): "+ vibrator.hasVibrator());
+            //Check if the vibrator has amplitude control
+            // Vibrate the device for 400 milliseconds
+            vibrator.vibrate(400);
+        }
+    }
 }

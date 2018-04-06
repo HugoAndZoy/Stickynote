@@ -25,12 +25,14 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
         View taskView;
         ImageView taskImage;
         TextView taskName;
+        TextView deadline;
 
         public ViewHolder(View view){
             super(view);
             taskView = view;
             taskImage = (ImageView) view.findViewById(R.id.fruit_image);
             taskName = (TextView) view.findViewById(R.id.fruit_name);
+            deadline = (TextView) view.findViewById(R.id.task_time);
         }
     }
 
@@ -63,6 +65,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
         Task task = mTaskList.get(position);
         holder.taskImage.setImageResource(task.getImageId());
         holder.taskName.setText(task.getName());
+        holder.deadline.setText(task.getDeadline());
     }
 
     @Override

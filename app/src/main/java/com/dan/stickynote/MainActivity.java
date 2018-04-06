@@ -245,10 +245,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //向数据库添加任务记录  add the task record to the database
     public void add_task(String t, String date, String time){
         int year=0, month=0, day=0, hour=0, min=0;
-        if(!date.equals("set date")&&!time.equals("set hour")) {
             //解析出年月日时分
             String[] parts = date.split("/");
-            String[] parts2 = date.split(":");
+            String[] parts2 = time.split(":");
             try {
                 year = Integer.parseInt(parts[0]);
                 month = Integer.parseInt(parts[1]);
@@ -258,21 +257,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             } catch (NumberFormatException e) {
                 e.printStackTrace();
             }
-        }
 
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         //组装数据 setup the data
         values.put("task",t);
-        if(!date.equals("set date")&&!time.equals("set hour"))
-        {
             values.put("year",year);
             values.put("month",month);
             values.put("day",day);
             values.put("hour",hour);
             values.put("min",min);
-        }
         db.insert("Task", null, values);
+        Toast.makeText(MainActivity.this, "year:"+year+"  hour:"+hour, Toast.LENGTH_SHORT).show();
+
         values.clear();
     }
 
@@ -294,7 +291,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             do{
                 //遍历cursor
                 String task = cursor.getString(cursor.getColumnIndex("task"));
-                taskList.add(new Task(task, R.drawable.point));
+
+                //合并时间
+                String year=String.valueOf(cursor.getInt(cursor.getColumnIndex("year")));
+                String month=String.valueOf(cursor.getInt(cursor.getColumnIndex("month")));
+                String day=String.valueOf(cursor.getInt(cursor.getColumnIndex("day")));
+                String hour=String.valueOf(cursor.getInt(cursor.getColumnIndex("hour")));
+                String min=String.valueOf(cursor.getInt(cursor.getColumnIndex("min")));
+                String time = year+"/"+month+"/"+day+" "+hour+":"+min;
+
+                taskList.add(new Task(task, R.drawable.point, time));
             }while(cursor.moveToNext());
         }
         cursor.close();

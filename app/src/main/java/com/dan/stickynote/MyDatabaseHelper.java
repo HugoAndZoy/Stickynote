@@ -12,7 +12,12 @@ import android.widget.Toast;
 public class MyDatabaseHelper extends SQLiteOpenHelper {
 
     public static final String CREATE_TASK = "create table Task ("
-            +"task varchar(20) primary key)";
+            +"task varchar(20) primary key," +
+            "year integer," +
+            "month integer," +
+            "day integer," +
+            "hour integer," +
+            "min integer)";
 
     private Context mContext;
 
