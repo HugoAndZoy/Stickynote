@@ -42,15 +42,20 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
     private List<Task> taskList=new ArrayList<>( );
 
 
+    //HOME键监听相关设置   the  settings   about    HOME   button
+    static public final String SYSTEM_DIALOG_REASON_KEY = "reason";
+    static public final String SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS = "globalactions";
+    static public final String SYSTEM_DIALOG_REASON_RECENT_APPS = "recentapps";
+    static public final String SYSTEM_DIALOG_REASON_HOME_KEY = "homekey";
+    static public final String SYSTEM_DIALOG_REASON_ASSIST = "assist";
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
-        if(keyCode == KeyEvent.KEYCODE_HOME)
-        {
-            //ActivityCollector.finishAll();
-            return true;
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            //Toast.makeText(ScreenSaver.this, "返回键无效", Toast.LENGTH_SHORT).show();
+            //return true;//return true;拦截事件传递,从而屏蔽back键。
         }
-
         return super.onKeyDown(keyCode, event);
     }
 
@@ -71,9 +76,18 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.getWindow().setFlags(0x80000000,0x80000000);
+        this.getWindow().setFlags(0x80000000, 0x80000000);
         setContentView(R.layout.activity_screen_saver);
         //ActivityCollector.addActivity(this);
+
+
+        //创建广播
+        InnerRecevier innerReceiver = new InnerRecevier();
+        //动态注册广播
+        IntentFilter intentFilter = new IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+        //启动广播
+        registerReceiver(innerReceiver, intentFilter);
+
 
         //连接数据库
         dbHelper = new MyDatabaseHelper(this, "TaskStore.db", null, 1);
@@ -268,13 +282,21 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
         private static final String SYSTEM_DIALOG_REASON_HOME_KEY = "homekey";
 
         @Override
-        public void onReceive(Context context, Intent intent) {
+        public void onReceive(Context arg0, Intent arg1) {
 
-            String intentAction = intent.getAction();
-            if (TextUtils.equals(intentAction, Intent.ACTION_CLOSE_SYSTEM_DIALOGS)) {
-                String reason = intent.getStringExtra(SYSTEM_DIALOG_REASON_KEY);
-                if (TextUtils.equals(SYSTEM_DIALOG_REASON_HOME_KEY, reason)) {
-                    ScreenSaver.this.finish();
+            String action = arg1.getAction();
+            //按下Home键会发送ACTION_CLOSE_SYSTEM_DIALOGS的广播
+            if (action.equals(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)) {
+
+                String reason = arg1.getStringExtra(SYSTEM_DIALOG_REASON_KEY);
+                if (reason != null) {
+                    if (reason.equals(SYSTEM_DIALOG_REASON_HOME_KEY)) {
+                        // 短按home键
+                        Toast.makeText(arg0, "短按Home键", Toast.LENGTH_SHORT).show();
+                    } else if (reason.equals(SYSTEM_DIALOG_REASON_RECENT_APPS)) {
+                        // RECENT_APPS键
+                        Toast.makeText(arg0, "RECENT_APPS", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
         }
@@ -330,4 +352,32 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
             vibrator.vibrate(400);
         }
     }
+
+
+    //recevier 监听
+    class InnerRecevier extends BroadcastReceiver {
+
+        final String SYSTEM_DIALOG_REASON_KEY = "reason";
+
+        final String SYSTEM_DIALOG_REASON_RECENT_APPS = "recentapps";
+
+        final String SYSTEM_DIALOG_REASON_HOME_KEY = "homekey";
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (Intent.ACTION_CLOSE_SYSTEM_DIALOGS.equals(action)) {
+                String reason = intent.getStringExtra(SYSTEM_DIALOG_REASON_KEY);
+                if (reason != null) {
+                    if (reason.equals(SYSTEM_DIALOG_REASON_HOME_KEY)) {
+                        ScreenSaver.this.finish();
+                        //Toast.makeText(ScreenSaver.this, "Home键被监听", Toast.LENGTH_SHORT).show();
+                    } else if (reason.equals(SYSTEM_DIALOG_REASON_RECENT_APPS)) {
+                        //Toast.makeText(ScreenSaver.this, "多任务键被监听", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        }
+    }
+
 }

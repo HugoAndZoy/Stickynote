@@ -176,33 +176,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
     }
 
-    //点击添加新任务的按钮  click to add the new task
-  /*  private void showInputDialog() {
-    @setView 装入一个EditView
-
-       //输入任务
-        final EditText addText = new EditText(MainActivity.this);
-        //输入截止时间
-
-
-        //设置最大输入字符数
-        addText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(15)});
-        //设置对话框标题
-        AlertDialog.Builder inputDialog = new AlertDialog.Builder(MainActivity.this);
-        inputDialog.setTitle("Add new ").setView(addText);
-        inputDialog.setPositiveButton("ok", new DialogInterface.OnClickListener() {
-
-                    public void onClick(DialogInterface dialog, int which) {
-                        if(addText.getText().length()>0) {
-                            add_task(addText.getText().toString());
-                            load_task();
-                            refresh();
-                        }
-                    }
-                }
-        ).show();
-    }
-*/
     //点击删除任务按钮   click to remove the task
     private void showNormalDialog(int i){
         /* @setIcon 设置对话框图标
@@ -234,7 +207,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         normalDialog.show();
     }
 
-    //refresh the activity
+    //刷新界面    refresh the activity
     private void refresh(){
         Intent it = new Intent(MainActivity.this, MainActivity.class);
         startActivity(it);
@@ -268,7 +241,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             values.put("hour",hour);
             values.put("min",min);
         db.insert("Task", null, values);
-        Toast.makeText(MainActivity.this, "year:"+year+"  hour:"+hour, Toast.LENGTH_SHORT).show();
+
 
         values.clear();
     }
