@@ -194,20 +194,20 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
         }
     }
 
-    //点击按钮，删除已完成的任务
+    //点击按钮，删除已完成的任务     Your pressing the button means the task has been down.
     public void abandon(){
-        //先删除当前任务
+        //先删除当前任务       delete the current task
         Button task = (Button) findViewById(R.id.job);
         task.setTextColor(Color.BLACK);
         vibrate();
         new Animations().shake(this, task);
-            if(taskList.size()>0) {
+
+        if(taskList.size()>0) {
                 delete_task(taskList.get(task_number).getName());     //删除数据库中的记录
                 taskList.remove(task_number);                    //删除数组中的记录
             }
 
-
-        //如果还有任务要做
+        //如果还有任务要做    if there is still task to do
         if(taskList.size()>0) {
             Random right = new Random();
             int temp = Math.abs(right.nextInt()) % taskList.size();           //获取正确的那个
@@ -215,14 +215,14 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
             else task_number=temp;
             task.setText(taskList.get(task_number).getName());
         }
-        //如果没有任务要做
+        //如果没有任务要做     no other tasks
         else
         {
             task.setText("NO TASKS!");
         }
     }
 
-    //摇动手机不删除任务
+    //摇动手机不删除任务  when you shake your phone, tasks will not be delete
     public void shake(){
         Button task = (Button) findViewById(R.id.job);
         task.setTextColor(Color.BLACK);
@@ -276,6 +276,7 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
         cursor.close();
     }
 
+    //监听物理按键   listen to the actions about the HOME button
     public class HomeWatcherReceiver extends BroadcastReceiver {
 
         private static final String SYSTEM_DIALOG_REASON_KEY = "reason";
@@ -302,7 +303,7 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
         }
     }
 
-
+    //选择最为紧急的事件  put the most urgent things into the first
     public int sort_time(){
         int count = 8888, current = 0;
         if(taskList.size()>0){

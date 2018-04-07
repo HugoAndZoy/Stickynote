@@ -33,7 +33,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dp"
-                android:gravity="center"
+                android:gravity="left"
                 android:maxEms="15"
                 android:maxLines="3"
                 android:singleLine="false"

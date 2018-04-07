@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private List<Task> taskList = new ArrayList<>( );
     // 数据库 dabatase
     private MyDatabaseHelper dbHelper;
-    //自定义dialog
+    //自定义 define dialog
     private SelfDialog selfDialog;
 
     @Override
@@ -102,7 +102,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         recyclerView.addOnItemTouchListener(new OnRecyclerItemClickListener(recyclerView) {
             @Override
             public void onItemClick(RecyclerView.ViewHolder viewHolder) {
-
+                int position = viewHolder.getAdapterPosition();
+                //Toast.makeText(MainActivity.this,"you clicked "+taskList.get(position).getName() ,Toast.LENGTH_LONG).show();
+                edit_task(taskList.get(position).getName(), taskList.get(position).getDeadline());
             }
             //添加长按相应   Long Click
             @Override
@@ -123,6 +125,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         button_add.setOnClickListener(this);
 
     }
+
    //获取通知栏高度
     private static int getStatusBarHeight(Context context) {
         int statusBarHeight = 0;
@@ -158,7 +161,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     selfDialog.setYesOnclickListener("OK", new SelfDialog.onYesOnclickListener() {
                         @Override
                         public void onYesClick() {
-                            if(selfDialog.getTask().length()>0 &&
+                            if(cheack_same(selfDialog.getTask())) {
+                                Toast.makeText(MainActivity.this, "You must add a different task name", Toast.LENGTH_LONG).show();
+                            }
+                            else if(selfDialog.getTask().length()>0 &&
                                     !selfDialog.getDate().equals("set date") &&
                                     !selfDialog.getTime().equals("set hour")) {
                                 add_task(selfDialog.getTask(), selfDialog.getDate(), selfDialog.getTime());
@@ -176,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
     }
 
-    //点击删除任务按钮   click to remove the task
+    //点击删除任务按钮的对话框   click to remove the task
     private void showNormalDialog(int i){
         /* @setIcon 设置对话框图标
          * @setTitle 设置对话框标题
@@ -241,7 +247,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             values.put("hour",hour);
             values.put("min",min);
         db.insert("Task", null, values);
-
 
         values.clear();
     }
@@ -319,5 +324,93 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }, hour, minute, true).show();
     }
 
+    //重新编辑任务信息对话框    the dialog uesd to reedit the task information
+    private void edit_task(String old, String time){
+        final String origin = old;
+        String date, hour;
+        Toast.makeText(MainActivity.this,"you clicked "+ origin ,Toast.LENGTH_LONG).show();
+        selfDialog = new SelfDialog(MainActivity.this);
+        selfDialog.setTitle("Edit task");
+        String parts[] = time.split(" ");
+        date =  parts[0];
+        hour = parts[1];
+        selfDialog.setTask(old);
+        selfDialog.setDate(date);
+        selfDialog.setTime(hour);
+
+        selfDialog.setDateOnclickListener(new SelfDialog.onYesOnclickListener(){
+            @Override
+            public void onYesClick() {
+                datePicker(selfDialog.date);
+            }
+        });
+
+        selfDialog.setHourOnclickListener(new SelfDialog.onYesOnclickListener(){
+            @Override
+            public void onYesClick() {hourPicker(selfDialog.messagetime);
+            }
+        });
+
+        selfDialog.setYesOnclickListener("OK", new SelfDialog.onYesOnclickListener() {
+            @Override
+            public void onYesClick() {
+                if(selfDialog.getTask().length()>0 &&
+                        !selfDialog.getDate().equals("set date") &&
+                        !selfDialog.getTime().equals("set hour")) {
+                    reedit_task(origin, selfDialog.getTask(), selfDialog.getDate(), selfDialog.getTime());
+                    load_task();
+                    refresh();
+                    selfDialog.dismiss();
+                }
+                else
+                    Toast.makeText(MainActivity.this,"You must set the task and time",Toast.LENGTH_LONG).show();
+            }
+
+
+        });
+        selfDialog.show();
+    }
+
+    private void reedit_task(String old, String t, String date, String time){
+
+        int year=0, month=0, day=0, hour=0, min=0;
+        //解析出年月日时分
+        String[] parts = date.split("/");
+        String[] parts2 = time.split(":");
+        try {
+            year = Integer.parseInt(parts[0]);
+            month = Integer.parseInt(parts[1]);
+            day = Integer.parseInt(parts[2]);
+            hour = Integer.parseInt(parts2[0]);
+            min = Integer.parseInt(parts2[1]);
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+
+        //链接数据库     connect
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        //组装数据 setup the data
+        values.put("task",t);
+        values.put("year",year);
+        values.put("month",month);
+        values.put("day",day);
+        values.put("hour",hour);
+        values.put("min",min);
+
+        db.update("Task", values, "task = ?", new String[]{ old });
+    }
+
+    private boolean cheack_same(String name){
+        load_task();
+        if(taskList.size()>0){
+            for(int i=0; i<taskList.size(); i++)
+            {
+                if( name.equals(taskList.get(i).getName()) )
+                    return true;
+            }
+        }
+        return false;
+    }
 }
 

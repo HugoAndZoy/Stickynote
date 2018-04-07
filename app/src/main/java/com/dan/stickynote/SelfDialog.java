@@ -19,7 +19,9 @@ public class SelfDialog extends Dialog {
     private String titleStr; //从外界设置的title文本
 
     private String messageStr;//从外界设置的消息文本
-    private  String timeStr;  //从外界设置的时间
+    private String taskStr;
+    private  String dateStr;  //从外界设置的时间
+    private String timeStr;
 
     //确定文本显示内容
     private String yesStr;
@@ -113,12 +115,21 @@ public class SelfDialog extends Dialog {
         if (titleStr != null) {
             titleTv.setText(titleStr);
         }
-        if (messageStr != null) {
-            messageTv.setText(messageStr);
-        }
         //如果设置按钮的文字
         if (yesStr != null) {
             yes.setText(yesStr);
+        }
+        //设置任务
+        if (taskStr != null) {
+            messageTv.setText(taskStr);
+        }
+        //设置日期
+        if (dateStr != null) {
+            date.setText(dateStr);
+        }
+        //设置小时分钟
+        if (timeStr != null) {
+            messagetime.setText(timeStr);
         }
     }
 
@@ -127,7 +138,7 @@ public class SelfDialog extends Dialog {
      */
     private void initView() {
         yes = (Button) findViewById(R.id.yes);
-        titleTv = (TextView) findViewById(R.id.title);
+        titleTv = (TextView) findViewById(R.id.get_task);
         messageTv = (TextView) findViewById(R.id.setTask);
         messagetime=(TextView)findViewById(R.id.hour);
         date=(TextView)findViewById(R.id.deadline);
@@ -146,10 +157,14 @@ public class SelfDialog extends Dialog {
     /**
      * 从外界Activity为Dialog设置dialog的message
      *
-     * @param message
+     * @param task
      */
-    public void setMessage(String message) {
-        messageStr = message;
+    public void setTask(String task) {
+        taskStr = task;
+    }
+    public void setDate(String date) {  dateStr = date; }
+    public void setTime(String time) {
+        timeStr = time;
     }
 
     /**
