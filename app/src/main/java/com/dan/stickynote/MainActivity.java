@@ -82,9 +82,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //需要设置这个 flag 才能调用 setStatusBarColor 来设置状态栏颜色
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         //设置状态栏颜色
-        window.setStatusBarColor(Color.rgb( 65,105,225));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            window.setStatusBarColor(Color.rgb( 65,105,225));
+        }
 
-    //*******************************************************************设置dialog
+        //*******************************************************************设置dialog
 
 
     //*************************************************加载数据库
@@ -354,7 +356,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         selfDialog.setYesOnclickListener("OK", new SelfDialog.onYesOnclickListener() {
             @Override
             public void onYesClick() {
-                if(selfDialog.getTask().length()>0 &&
+                if(cheack_same2(selfDialog.getTask(), origin))
+                    Toast.makeText(MainActivity.this,"You must set the different task name",Toast.LENGTH_LONG).show();
+                else if(selfDialog.getTask().length()>0 &&
                         !selfDialog.getDate().equals("set date") &&
                         !selfDialog.getTime().equals("set hour")) {
                     reedit_task(origin, selfDialog.getTask(), selfDialog.getDate(), selfDialog.getTime());
@@ -407,6 +411,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             for(int i=0; i<taskList.size(); i++)
             {
                 if( name.equals(taskList.get(i).getName()) )
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean cheack_same2(String name, String old){
+        load_task();
+        if(taskList.size()>0){
+            for(int i=0; i<taskList.size(); i++)
+            {
+                if( name.equals(taskList.get(i).getName())  &&  !name.equals(old) )
                     return true;
             }
         }
