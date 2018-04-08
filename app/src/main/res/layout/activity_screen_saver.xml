@@ -12,8 +12,8 @@
     <Button
         android:id="@+id/job"
         android:layout_width="340dp"
-        android:layout_height="220dp"
-        android:layout_centerInParent="true"
+        android:layout_height="200dp"
+        android:layout_above="@+id/showtime"
         android:layout_centerHorizontal="true"
         android:background="#00000000"
         android:fontFamily="@font/aaa"
@@ -49,6 +49,17 @@
         android:text="Shake if you haven't"
         android:textColor="#000000"
         android:textSize="20dp" />
+
+    <TextView
+        android:id="@+id/showtime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="178dp"
+        android:text="Deadline： xxxxxxx"
+        android:textSize="25dp"
+        />
 
 
 </RelativeLayout>

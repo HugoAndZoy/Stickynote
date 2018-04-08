@@ -2,15 +2,18 @@ package com.dan.stickynote;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.PowerManager;
 import android.os.Vibrator;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -22,6 +25,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -78,6 +82,7 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
         super.onCreate(savedInstanceState);
         this.getWindow().setFlags(0x80000000, 0x80000000);
         setContentView(R.layout.activity_screen_saver);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         //ActivityCollector.addActivity(this);
 
 
@@ -128,6 +133,7 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
 
         //给任务按钮添加事件相应
         Button task = (Button)findViewById(R.id.job);
+        TextView showtime = (TextView)findViewById(R.id.showtime);
         task.setOnClickListener(this);
 
         //随机一个任务显示
@@ -136,6 +142,8 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
             task_number = sort_time();           //获取正确的那个
             task.setText(taskList.get(sort_time()).getName());
             task.setTextColor(Color.RED);
+            showtime.setText("Deadline:"+taskList.get(sort_time()).getDeadline());
+            showtime.setTextColor(Color.RED);
         }
         else
         {
@@ -190,7 +198,10 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
 
 
         if(v.getId()==R.id.job) {
-           abandon();
+            if(taskList.size()>0)
+            confirmDialog();
+            else
+              abandon();
         }
     }
 
@@ -198,12 +209,14 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
     public void abandon(){
         //先删除当前任务       delete the current task
         Button task = (Button) findViewById(R.id.job);
+        TextView showtime = (TextView)findViewById(R.id.showtime);
         task.setTextColor(Color.BLACK);
+        showtime.setTextColor(Color.BLACK);
         vibrate();
         new Animations().shake(this, task);
 
         if(taskList.size()>0) {
-                delete_task(taskList.get(task_number).getName());     //删除数据库中的记录
+                delete_task2(taskList.get(task_number).getName(), taskList.get(task_number).getDeadline());     //删除数据库中的记录
                 taskList.remove(task_number);                    //删除数组中的记录
             }
 
@@ -214,20 +227,24 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
             if(temp==task_number) temp = Math.abs(right.nextInt()) % taskList.size();    //如果和当前重复，再随机一次
             else task_number=temp;
             task.setText(taskList.get(task_number).getName());
+            showtime.setText("Deadline:"+taskList.get(task_number).getDeadline());
         }
         //如果没有任务要做     no other tasks
         else
         {
             task.setText("NO TASKS!");
+            showtime.setText("");
         }
     }
 
     //摇动手机不删除任务  when you shake your phone, tasks will not be delete
     public void shake(){
         Button task = (Button) findViewById(R.id.job);
+        TextView showtime = (TextView)findViewById(R.id.showtime);
         task.setTextColor(Color.BLACK);
+        showtime.setTextColor(Color.BLACK);
         new Animations().shake(this, task);
-        vibrate();
+        //vibrate();
         //如果还有任务要做
         if(taskList.size()>0) {
             Random right = new Random();
@@ -235,11 +252,13 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
             if(temp==task_number) temp = Math.abs(right.nextInt()) % taskList.size();    //如果和当前重复，再随机一次
             else task_number=temp;
             task.setText(taskList.get(task_number).getName());
+            showtime.setText("Deadline:"+taskList.get(task_number).getDeadline());
         }
         //如果没有任务要做
         else
         {
             task.setText("NO TASKS!");
+            showtime.setText("");
         }
     }
 
@@ -381,4 +400,47 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
         }
     }
 
+    private void confirmDialog(){
+        /* @setIcon 设置对话框图标
+         * @setTitle 设置对话框标题
+         * @setMessage 设置对话框消息提示
+         * setXXX方法返回Dialog对象，因此可以链式设置属性
+         */
+        final AlertDialog.Builder normalDialog =
+                new AlertDialog.Builder(ScreenSaver.this);
+        //normalDialog.setIcon(R.drawable.icon_dialog);
+        //normalDialog.setTitle("");
+        normalDialog.setMessage("Are you sure that you finished?");
+        normalDialog.setPositiveButton("yes",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        abandon();
+                        //...To-do
+                    }
+                });
+        normalDialog.setNegativeButton("no",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //...To-do
+                    }
+                });
+        // 显示
+        normalDialog.show();
+    }
+
+    //删除数据库的记录2  delete the record in the database
+    public void delete_task2(String t, String time){
+        String[] part, part1, part2;
+        String year, month, day, hour, min;
+        part = time.split(" ");
+        part1 = part[0].split("/");
+        part2 = part[1].split(":");
+        year = part1[0];   month=part1[1];   day=part1[2];   hour=part2[0];    min=part2[1];
+
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        db.delete("Task", "task = ? and year = ? and month = ? and day = ? and hour = ? and min = ?",
+                new String[]{ t , year, month, day, hour, min });
+    }
 }

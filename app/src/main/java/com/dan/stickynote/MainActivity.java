@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -63,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         // *********************************************************设置状态透明
 
@@ -163,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     selfDialog.setYesOnclickListener("OK", new SelfDialog.onYesOnclickListener() {
                         @Override
                         public void onYesClick() {
-                            if(cheack_same(selfDialog.getTask())) {
+                            if(cheack_same(selfDialog.getTask(),selfDialog.getDate(),selfDialog.getTime())) {
                                 Toast.makeText(MainActivity.this, "You must add a different task name", Toast.LENGTH_LONG).show();
                             }
                             else if(selfDialog.getTask().length()>0 &&
@@ -200,7 +202,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                         delete_task(taskList.get(it).getName());
+                         //delete_task(taskList.get(it).getName());
+                        delete_task2(taskList.get(it).getName(), taskList.get(it).getDeadline());
                         refresh();
                     }
                 });
@@ -257,11 +260,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //删除数据库的记录  delete the record in the database
     public void delete_task(String t){
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        db.delete("Task", "task = ?", new String[]{ t });
+        db.delete("Task", "task = ? and ", new String[]{ t });
+    }
+
+    //删除数据库的记录2  delete the record in the database
+    public void delete_task2(String t, String time){
+        String[] part, part1, part2;
+        String year, month, day, hour, min;
+        part = time.split(" ");
+        part1 = part[0].split("/");
+        part2 = part[1].split(":");
+        year = part1[0];   month=part1[1];   day=part1[2];   hour=part2[0];    min=part2[1];
+
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        db.delete("Task", "task = ? and year = ? and month = ? and day = ? and hour = ? and min = ?",
+                new String[]{ t , year, month, day, hour, min });
     }
 
     //查询并载入列表 check and load the task Liat
     public void load_task(){
+        //refresh();
         //移除现有数组   remove the TaskList and recreate a new one
         taskList=new ArrayList<>( );
         SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -329,6 +347,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //重新编辑任务信息对话框    the dialog uesd to reedit the task information
     private void edit_task(String old, String time){
         final String origin = old;
+        final String oldtime = time;
         String date, hour;
         Toast.makeText(MainActivity.this,"you clicked "+ origin ,Toast.LENGTH_LONG).show();
         selfDialog = new SelfDialog(MainActivity.this);
@@ -356,18 +375,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         selfDialog.setYesOnclickListener("OK", new SelfDialog.onYesOnclickListener() {
             @Override
             public void onYesClick() {
-                if(cheack_same2(selfDialog.getTask(), origin))
-                    Toast.makeText(MainActivity.this,"You must set the different task name",Toast.LENGTH_LONG).show();
+                if(cheack_same2(selfDialog.getTask(), selfDialog.getDate(), selfDialog.getTime(), origin, oldtime))
+                    Toast.makeText(MainActivity.this,"You must set the different task",Toast.LENGTH_LONG).show();
                 else if(selfDialog.getTask().length()>0 &&
                         !selfDialog.getDate().equals("set date") &&
                         !selfDialog.getTime().equals("set hour")) {
-                    reedit_task(origin, selfDialog.getTask(), selfDialog.getDate(), selfDialog.getTime());
+                    reedit_task(origin, oldtime, selfDialog.getTask(), selfDialog.getDate(), selfDialog.getTime());
                     load_task();
                     refresh();
                     selfDialog.dismiss();
                 }
                 else
-                    Toast.makeText(MainActivity.this,"You must set the task and time",Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this,"You must set the task, date and time",Toast.LENGTH_LONG).show();
             }
 
 
@@ -375,7 +394,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         selfDialog.show();
     }
 
-    private void reedit_task(String old, String t, String date, String time){
+    private void reedit_task(String old, String oldtime, String t, String date, String time){
+
+
+        String[] part, part1, part2;
+        String myear, mmonth, mday, mhour, mmin;
+        part = oldtime.split(" ");
+        part1 = part[0].split("/");
+        part2 = part[1].split(":");
+        myear = part1[0];   mmonth=part1[1];   mday=part1[2];   mhour=part2[0];    mmin=part2[1];
+
+
+
+
 
         int year=0, month=0, day=0, hour=0, min=0;
         //解析出年月日时分
@@ -402,27 +433,51 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         values.put("hour",hour);
         values.put("min",min);
 
-        db.update("Task", values, "task = ?", new String[]{ old });
+        db.update("Task", values, "task = ? and year = ? and month = ? and day = ? and hour = ? and min = ?",
+                new String[]{ old, myear, mmonth, mday, mhour, mmin  });
     }
 
-    private boolean cheack_same(String name){
+
+    //check sanme
+    private boolean cheack_same(String name, String date, String time){
         load_task();
+
+//        String[] parts1, parts2;
+//        parts1 = date.split("/");
+//        parts2 = time.split(":");
+//        String year,month,day,hour,min;
+//        year = parts1[0];
+        String mtime;
+        mtime = date +" "+ time;
+
         if(taskList.size()>0){
             for(int i=0; i<taskList.size(); i++)
             {
-                if( name.equals(taskList.get(i).getName()) )
+                if( name.equals(taskList.get(i).getName()) && mtime.equals(taskList.get(i).getDeadline()))
                     return true;
             }
         }
         return false;
     }
 
-    private boolean cheack_same2(String name, String old){
+    private boolean cheack_same2(String name,String date, String time, String old, String oldtime){
         load_task();
+
+        String mtime;
+        mtime = date +" "+ time;
+        //Toast.makeText(MainActivity.this,"mtime:"+mtime+"  oldtime:"+oldtime ,Toast.LENGTH_LONG).show();
         if(taskList.size()>0){
             for(int i=0; i<taskList.size(); i++)
             {
-                if( name.equals(taskList.get(i).getName())  &&  !name.equals(old) )
+                //Toast.makeText(MainActivity.this,"数列中:"+taskList.get(i).getDeadline()+"  老时间:"+oldtime ,Toast.LENGTH_LONG).show();
+                //如果和老任务信息相同，什么也不做
+                if( taskList.get(i).getName().equals(old)&&taskList.get(i).getDeadline().equals(oldtime))
+                {
+                }
+                //如果不同，则判定有没有重复
+                else if( name.equals(taskList.get(i).getName())
+                        &&  mtime.equals(taskList.get(i).getDeadline())
+                        )
                     return true;
             }
         }
