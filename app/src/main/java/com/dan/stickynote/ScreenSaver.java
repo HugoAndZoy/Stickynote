@@ -36,7 +36,7 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
 
     private Vibrator vibrator;
     private HomeWatcherReceiver mHomeWatcherReceiver = null;
-    private MyDatabaseHelper dbHelper;    //数据库
+    private MyDatabaseHelper dbHelper;    //数据库 database
     PowerManager.WakeLock mWakeLock;
     private String[] tasks = new String[]{
             "HOMEWORK","WASH THE CAR","COOK","HAVE CLASS","THESIS","PAINT","REVIEW","RECITE WORDS","SWEEP"
@@ -86,11 +86,11 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
         //ActivityCollector.addActivity(this);
 
 
-        //创建广播
+        //创建广播    create the receiver
         InnerRecevier innerReceiver = new InnerRecevier();
-        //动态注册广播
+        //动态注册广播    create a new IntentFilter
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
-        //启动广播
+        //启动广播     gogogo!start!
         registerReceiver(innerReceiver, intentFilter);
 
 
@@ -127,16 +127,16 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
 
 
         //↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓屏保内互动设置↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
-        //让arrayList获得数据
+        //让arrayList获得数据      let Arraylist get the data
         load_task();
 
 
-        //给任务按钮添加事件相应
+        //给任务按钮添加事件相应     Add the actionlistener
         Button task = (Button)findViewById(R.id.job);
         TextView showtime = (TextView)findViewById(R.id.showtime);
         task.setOnClickListener(this);
 
-        //随机一个任务显示
+        //显示最重要的任务    show the most important tasks
         if(taskList.size()>0) {
             Random right = new Random();
             task_number = sort_time();           //获取正确的那个
@@ -150,7 +150,7 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
             task.setText("No Tasks!");
         }
 
-        //滑动监听
+        //滑动监听    We try to manage the Gesture but we failed, I'm so sorry
         GestureDetector.SimpleOnGestureListener myGestureListener = new GestureDetector.SimpleOnGestureListener(){
             public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
 
@@ -167,10 +167,10 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
                 return false;
             };
         };
-        //滑动
+        //滑动     Gesture
         GestureDetector mGestureDetector = new GestureDetector(this, myGestureListener);
 
-        //晃动
+        //晃动     shake
         SensorManagerHelper sensorHelper = new SensorManagerHelper(this);
         sensorHelper.setOnShakeListener(new SensorManagerHelper.OnShakeListener() {
             @Override
@@ -245,7 +245,7 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
         showtime.setTextColor(Color.BLACK);
         new Animations().shake(this, task);
         //vibrate();
-        //如果还有任务要做
+        //如果还有任务要做   If there are still some tasks.
         if(taskList.size()>0) {
             Random right = new Random();
             int temp = Math.abs(right.nextInt()) % taskList.size();           //获取正确的那个
@@ -254,7 +254,7 @@ public class ScreenSaver extends AppCompatActivity implements View.OnClickListen
             task.setText(taskList.get(task_number).getName());
             showtime.setText("Deadline:"+taskList.get(task_number).getDeadline());
         }
-        //如果没有任务要做
+        //如果没有任务要做   If there are no tasks left to be done.
         else
         {
             task.setText("NO TASKS!");

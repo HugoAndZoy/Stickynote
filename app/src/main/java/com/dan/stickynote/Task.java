@@ -1,5 +1,10 @@
 package com.dan.stickynote;
 
+/*
+### we create the class Task to store the task name\date\hour\min
+*/
+
+
 public class Task {
 
     private  String name;

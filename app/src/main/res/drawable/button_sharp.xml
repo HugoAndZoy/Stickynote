@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
-  android:shape="oval">
+    android:shape="oval">
 
     <solid  android:color="#FFD700" />
-     <size android:width="20dp"
-         android:height="20dp" />
+    <size android:width="20dp"
+        android:height="20dp" />
     <!--描边 他需要 2个参数，颜色 第二参数 宽度 -->
     <stroke android:width="0dp"
 

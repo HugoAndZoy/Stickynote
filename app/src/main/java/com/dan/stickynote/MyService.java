@@ -11,6 +11,7 @@ import android.util.Log;
 
 /**
  * Created by 52641 on 2018/3/26.
+ * It's a service to listen to the ACTION_SCREEN_ON and show our ScreenSaver
  */
 
 public class MyService extends Service {

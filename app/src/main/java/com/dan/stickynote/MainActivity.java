@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-   //获取通知栏高度
+   //获取通知栏高度     get the height of the title bat
     private static int getStatusBarHeight(Context context) {
         int statusBarHeight = 0;
         Resources res = context.getResources();
@@ -141,6 +141,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return statusBarHeight;
     }
 
+    //点击添加按钮添加任务   if you press the add button, a add-task dialog will be shown
     public void onClick(View v) {
         if(v.getId()==R.id.button_add)
         {
@@ -166,7 +167,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         @Override
                         public void onYesClick() {
                             if(cheack_same(selfDialog.getTask(),selfDialog.getDate(),selfDialog.getTime())) {
-                                Toast.makeText(MainActivity.this, "You must add a different task name", Toast.LENGTH_LONG).show();
+                                Toast.makeText(MainActivity.this, "You must add a different task(name/time/task)", Toast.LENGTH_LONG).show();
                             }
                             else if(selfDialog.getTask().length()>0 &&
                                     !selfDialog.getDate().equals("set date") &&
@@ -177,7 +178,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 selfDialog.dismiss();
                             }
                             else
-                                Toast.makeText(MainActivity.this,"You must set the task and time",Toast.LENGTH_LONG).show();
+                                Toast.makeText(MainActivity.this,"You must set the task,time and hour",Toast.LENGTH_LONG).show();
                         }
 
 
@@ -304,7 +305,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         cursor.close();
     }
 
-    //打开选择日期的界面
+    //打开选择日期的界面    open the dialog that you can choose the date and hour/min
     public void datePicker(TextView tv){
 
         final TextView text = tv;
@@ -438,7 +439,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    //check sanme
+    //check same,  if you already have the same task, it will return true
     private boolean cheack_same(String name, String date, String time){
         load_task();
 

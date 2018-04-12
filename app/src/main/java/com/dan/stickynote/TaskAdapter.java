@@ -1,19 +1,19 @@
 package com.dan.stickynote;
 
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.RecyclerView;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
+        import android.content.Intent;
+        import android.content.SharedPreferences;
+        import android.support.v7.app.AlertDialog;
+        import android.support.v7.widget.RecyclerView;
+        import android.view.LayoutInflater;
+        import android.view.View;
+        import android.view.ViewGroup;
+        import android.widget.ImageView;
+        import android.widget.TextView;
 
-import java.util.List;
+        import java.util.List;
 
-import static android.content.Context.MODE_PRIVATE;
+        import static android.content.Context.MODE_PRIVATE;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
 
@@ -70,7 +70,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
 
     @Override
     public int getItemCount() {
-       return mTaskList.size();
+        return mTaskList.size();
     }
 
 

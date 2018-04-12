@@ -42,7 +42,7 @@
             android:layout_alignParentRight="true"
             android:layout_marginLeft="0dp"
             android:gravity="center"
-            android:background="@drawable/button_shap"
+            android:background="@drawable/button_sharp"
             android:text="+"
             android:textSize="20dp"
             android:textColor="#FFFFFF"

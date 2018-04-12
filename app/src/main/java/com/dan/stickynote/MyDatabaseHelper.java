@@ -7,6 +7,7 @@ import android.widget.Toast;
 
 /**
  * Created by Dan on 2018/4/3.
+ * It is a SQLiteOpenHelper on our own. We will write some SQL jobs.
  */
 
 public class MyDatabaseHelper extends SQLiteOpenHelper {

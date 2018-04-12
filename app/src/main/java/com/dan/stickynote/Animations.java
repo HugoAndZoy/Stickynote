@@ -1,10 +1,10 @@
 package com.dan.stickynote;
 
-import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
-import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
+        import android.content.Context;
+        import android.support.v7.app.AppCompatActivity;
+        import android.view.View;
+        import android.view.animation.Animation;
+        import android.view.animation.AnimationUtils;
 
 public class Animations extends AppCompatActivity {
 
